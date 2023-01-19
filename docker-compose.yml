@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  proxy:
+    build:
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      server.port: 8080
+    restart: always
+    depends_on:
+      - redis
+    command: --spring.profiles.active=development
+    networks:
+      - spring
+  redis:
+    image: redis:alpine
+    hostname: redis
+    restart: always
+    networks:
+      - spring
+  prometheus:
+    image: prom/prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus:/etc/prometheus
+      - prometheus-data:/prometheus
+    command: --web.enable-lifecycle --config.file=/etc/prometheus/prometheus.yml
+
+networks:
+  spring:
+
+volumes:
+  prometheus-data:

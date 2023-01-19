@@ -1,0 +1,45 @@
+management:
+  server:
+    port: 8080
+  endpoint:
+    metrics:
+      enabled: true
+    prometheus:
+      enabled: true
+  endpoints:
+    web:
+      exposure:
+        include: '*'
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+
+spring:
+  redis:
+    host: host.docker.internal
+    port: 6379
+  application:
+    name: meli-proxy-challenge
+  cloud:
+    gateway:
+      metrics:
+        enabled: true
+      routes:
+        - id: path_route
+          uri: https://api.publicapis.org
+          predicates:
+            - Path=/categories/{segment}
+          path-pattern:
+            pattern: /categories/{segment}
+            params:
+              segment: ".+"
+          filters:
+            - name: RewritePath
+              args:
+                regexp: "/[^/]+$"
+                replacement: ""
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 50000
+                redis-rate-limiter.burstCapacity: 100000
